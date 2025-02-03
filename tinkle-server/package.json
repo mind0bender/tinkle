@@ -1,9 +1,9 @@
 {
-  "name": "winks",
+  "name": "tinkle",
   "version": "1.0.0",
-  "description": "An Express server for winks - A basic note passing app",
+  "description": "An Express server for tinkle - A basic note passing app",
   "main": "dist/index.js",
-  "repository": "git+https://github.com/mind0bender/winks.git",
+  "repository": "git+https://github.com/mind0bender/tinkle.git",
   "author": "Yash Gupta",
   "license": "MIT",
   "private": false,

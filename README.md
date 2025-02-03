@@ -1,13 +1,12 @@
-# [Winks](https://winks.vercel.app/)
+# [Tinkle](https://tinkle.vercel.app/)
 
-Winks is a simple note sharing application. It allows users to create and read small text messages.
+Tinkle is a simple note sharing application. It allows users to create and read small text messages.
 It also allows users to share notes with other users.
 
-> Winks does not need authentication to create, read or delete notes.
-That also implies that anyone can read your note if they know the note id.
+> Tinkle does not need authentication to create, read or delete notes.
+> That also implies that anyone can read your note if they know the note id.
 
 > Heavily inspired by [Online Clipboard](https://online-clipboard.online/online-clipboard/).
-
 
 ## Features
 
