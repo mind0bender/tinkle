@@ -9,3 +9,27 @@
 
   --color-info: oklch(0.828 0.189 84.429);
 }
+
+@layer base {
+  .scrollbar::-webkit-scrollbar {
+    @apply w-2 h-2;
+  }
+
+  .scrollbar::-webkit-scrollbar-track {
+    @apply bg-stone-800 my-1;
+  }
+
+  .scrollbar::-webkit-scrollbar-thumb {
+    @apply bg-stone-700;
+  }
+
+  .scrollbar::-webkit-scrollbar-thumb:hover {
+    @apply bg-stone-700;
+  }
+  .scrollbar::-webkit-scrollbar-corner {
+    @apply bg-stone-900;
+  }
+  *::selection {
+    @apply bg-info text-black;
+  }
+}

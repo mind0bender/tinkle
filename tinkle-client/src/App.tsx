@@ -1,7 +1,10 @@
+import { useState } from "react";
 import Output from "./components/Output";
 import { Color } from "./helper/color";
+import Prompt from "./components/Prompt";
 
 function App(): JSX.Element {
+  const [command, setCommand] = useState<string>("");
   return (
     <div
       className={`w-full min-h-screen flex flex-col bg-stone-950 text-primary-50`}>
@@ -23,26 +26,27 @@ function App(): JSX.Element {
       <div className={`flex grow`}>
         <div className={`py-5 px-10 bg-black border-r border-stone-800`} />
         <div
-          className={`flex flex-col justify-between grow px-4 mb-12 py-2 h-[calc(100vh-6rem)] overflow-y-auto`}>
-          <Output
-            nextOutputs={[
-              {
-                text: "Insecure boot sequence initiated",
-                theme: Color.danger,
-                waitBefore: 3000,
-                waitAfterRounds: 3,
-              },
-              {
-                text: "Initializing modules",
-                waitAfterRounds: Math.floor(Math.random() * 3 + 3),
-              },
-              {
-                text: "Done.",
-              },
-            ]}
-          />
-          <br />
-          <br />
+          className={`flex flex-col  justify-end grow px-4 mb-12 h-[calc(100vh-6rem)] overflow-y-auto`}>
+          <div className={`py-4 overflow-y-auto scrollbar`}>
+            <Output
+              nextOutputs={[
+                {
+                  text: "Insecure boot sequence initiated",
+                  theme: Color.danger,
+                  waitBefore: 3000,
+                  waitAfterRounds: 3,
+                },
+                {
+                  text: "Initializing modules",
+                  waitAfterRounds: Math.random() * 3 + 3,
+                },
+                {
+                  text: "Done.",
+                },
+              ]}
+            />
+          </div>
+          <Prompt command={command} setCommand={setCommand} />
         </div>
         <div className={`fixed bottom-0 flex w-full z-10`}>
           <div
@@ -50,11 +54,7 @@ function App(): JSX.Element {
           />
           <div
             className={`grow bg-transparent backdrop-blur-sm backdrop-opacity-10 border-t border-stone-800 px-4 py-2  h-12 flex items-center`}>
-            <Output
-              text="Type help for more info"
-              theme={Color.primary}
-              waitBefore={800}
-            />
+            <Output text="Type help for more info" waitBefore={1200} />
           </div>
           <div
             className={`py-5 px-10 bg-black border-t border-l border-stone-800`}
