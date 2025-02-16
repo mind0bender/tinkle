@@ -1,10 +1,53 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import Output from "./components/Output";
 import { Color } from "./helper/color";
 import Prompt from "./components/Prompt";
+import axios, { AxiosResponse } from "axios";
+
+enum OutputType {
+  normal,
+  info,
+  error,
+}
+
+interface OutputInterface {
+  type: OutputType;
+  timestamp: Date;
+
+  text?: string | undefined;
+  time?: number;
+}
+
+interface CommandResponse {
+  hash: string;
+}
 
 function App(): JSX.Element {
+  const SERVER_URL: string = import.meta.env.VITE_SERVER_URL;
+
   const [command, setCommand] = useState<string>("");
+
+  const [outputs, setOutputs] = useState<OutputInterface[]>([]);
+
+  const handleCommand: () => void = useCallback((): void => {
+    axios
+      .post(SERVER_URL, {
+        input: command,
+      })
+      .then(({ data: { hash } }: AxiosResponse<CommandResponse>): void => {
+        setOutputs((prev: OutputInterface[]): OutputInterface[] => [
+          ...prev,
+          {
+            text: `message saved\nhash ${hash}`,
+            timestamp: new Date(),
+            type: OutputType.normal,
+          },
+        ]);
+        setCommand("");
+      })
+      .catch(console.error);
+  }, [SERVER_URL, command]);
+
   return (
     <div
       className={`w-full min-h-screen flex flex-col bg-stone-950 text-primary-50`}>
@@ -16,6 +59,7 @@ function App(): JSX.Element {
           className={`grow bg-transparent backdrop-blur-sm backdrop-opacity-10 border-b border-stone-800 px-4 py-2  h-12 flex items-center`}>
           <Output
             theme={Color.info}
+            isOutput={false}
             text={`mounting /mind0bender/tinkle.quack`}
           />
         </div>
@@ -45,8 +89,13 @@ function App(): JSX.Element {
                 },
               ]}
             />
+            <Output nextOutputs={outputs} />
           </div>
-          <Prompt command={command} setCommand={setCommand} />
+          <Prompt
+            command={command}
+            setCommand={setCommand}
+            handlenCommand={handleCommand}
+          />
         </div>
         <div className={`fixed bottom-0 flex w-full z-10`}>
           <div
@@ -54,7 +103,11 @@ function App(): JSX.Element {
           />
           <div
             className={`grow bg-transparent backdrop-blur-sm backdrop-opacity-10 border-t border-stone-800 px-4 py-2  h-12 flex items-center`}>
-            <Output text="Type help for more info" waitBefore={1200} />
+            <Output
+              isOutput={false}
+              text="Type help for more info"
+              waitBefore={1200}
+            />
           </div>
           <div
             className={`py-5 px-10 bg-black border-t border-l border-stone-800`}

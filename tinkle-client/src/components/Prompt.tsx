@@ -1,6 +1,7 @@
 import {
   ChangeEvent,
   Dispatch,
+  KeyboardEvent,
   MutableRefObject,
   useEffect,
   useRef,
@@ -9,6 +10,7 @@ import {
 interface PromptProps {
   command: string;
   setCommand: Dispatch<string>;
+  handlenCommand: () => void;
 }
 
 interface CaretPositoin {
@@ -19,6 +21,7 @@ interface CaretPositoin {
 export default function Prompt({
   command,
   setCommand,
+  handlenCommand: onCommand,
 }: PromptProps): JSX.Element {
   const [isFocused, setIsFocused] = useState<boolean>(false);
   const inpRef: MutableRefObject<HTMLInputElement | null> = useRef(null);
@@ -53,6 +56,17 @@ export default function Prompt({
       inp!.removeEventListener("selectionchange", onSelectionChange);
     };
   }, []);
+
+  function handleKeyDown(e: KeyboardEvent<HTMLInputElement>): void {
+    switch (e.key) {
+      case "Enter":
+        onCommand();
+        break;
+
+      default:
+        break;
+    }
+  }
 
   return (
     <div className={`flex items-center w-full py-4 border-t border-stone-700`}>
@@ -102,11 +116,15 @@ export default function Prompt({
       <input
         ref={inpRef}
         type="text"
-        // value={command}
+        value={command}
+        autoComplete={`off`}
+        autoCapitalize={`off`}
+        autoCorrect={`off`}
         onChange={(e: ChangeEvent<HTMLInputElement>): void => {
           console.log("lol");
           setCommand(e.target.value);
         }}
+        onKeyDown={handleKeyDown}
         autoFocus
         className={`scale-0 absolute`}
       />

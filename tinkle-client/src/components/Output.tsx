@@ -1,4 +1,10 @@
-import { HTMLAttributes, useEffect, useState } from "react";
+import {
+  HTMLAttributes,
+  MutableRefObject,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import getThemeClassName, { Color } from "../helper/color";
 
 export interface OutputProps extends HTMLAttributes<HTMLPreElement> {
@@ -7,7 +13,9 @@ export interface OutputProps extends HTMLAttributes<HTMLPreElement> {
   nextOutputs?: OutputProps[];
   waitBefore?: number;
   waitAfterRounds?: number;
-  time?: number;
+  speedInv?: number;
+  timestamp?: Date;
+  isOutput?: boolean;
 }
 
 export default function Output({
@@ -16,7 +24,9 @@ export default function Output({
   nextOutputs = [],
   waitBefore = 0,
   waitAfterRounds = 0,
-  time = (text?.length || 0) * 50,
+  speedInv = (text?.length || 0) * 50,
+  timestamp = new Date(),
+  isOutput = true,
   ...rest
 }: OutputProps): JSX.Element {
   const waitAfter: number = waitAfterRounds * 400 * 4;
@@ -28,7 +38,7 @@ export default function Output({
   );
 
   const [loadingIdx, setLoadingIdx] = useState<number>(0);
-
+  const timeRef: MutableRefObject<Date> = useRef(timestamp);
   useEffect((): (() => void) => {
     if (text && textIdx === text.length) {
       const id: number = setInterval((): void => {
@@ -60,22 +70,32 @@ export default function Output({
           }
           return prev < text.length ? prev + 1 : prev;
         });
-      }, time / text.length);
+      }, speedInv / text.length);
     }, waitBefore);
     return (): void => {
       clearInterval(id);
     };
-  }, [text, waitBefore, waitAfter, time]);
+  }, [text, waitBefore, waitAfter, speedInv]);
 
   return (
-    <pre {...rest} className={`text-wrap`}>
+    <pre {...rest} className={`text-wrap flex flex-col grow`}>
       {text && (
-        <code className={`${getThemeClassName(theme)}`}>
-          {text.slice(0, textIdx)}
-          {textIdx === text.length ? "" : "\u2588"}
-          {waitAfter
-            ? "...".slice(0, isReadyForNextOutputs ? 3 : loadingIdx)
-            : null}
+        <code
+          className={`flex grow justify-between items-center gap-2 py-1 px-4 ${
+            isOutput && isReadyForNextOutputs && "border-t border-l-4"
+          } ${getThemeClassName(theme, true)}`}>
+          <div>
+            {text.slice(0, textIdx)}
+            {textIdx === text.length ? "" : "\u2588"}
+            {waitAfter
+              ? "...".slice(0, isReadyForNextOutputs ? 3 : loadingIdx)
+              : null}
+          </div>
+          {isOutput && (
+            <span className={`text-xs text-stone-400`}>
+              {timeRef.current.toLocaleTimeString()}
+            </span>
+          )}
         </code>
       )}
       {(isReadyForNextOutputs && nextOutputs.length && (
