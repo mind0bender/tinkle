@@ -11,6 +11,7 @@ interface PromptProps {
   command: string;
   setCommand: Dispatch<string>;
   handlenCommand: () => void;
+  disabled: boolean;
 }
 
 interface CaretPositoin {
@@ -22,6 +23,7 @@ export default function Prompt({
   command,
   setCommand,
   handlenCommand: onCommand,
+  disabled,
 }: PromptProps): JSX.Element {
   const [isFocused, setIsFocused] = useState<boolean>(false);
   const inpRef: MutableRefObject<HTMLInputElement | null> = useRef(null);
@@ -36,10 +38,13 @@ export default function Prompt({
     onFocusChange();
     function onFocusChange(): void {
       inp!.focus();
+      console.log("focus");
       setIsFocused(document.hasFocus());
     }
+    window.addEventListener("focus", onFocusChange);
     window.addEventListener("focusin", onFocusChange);
     window.addEventListener("focusout", onFocusChange);
+    window.addEventListener("blur", onFocusChange);
 
     function onSelectionChange(): void {
       if (inp) {
@@ -53,9 +58,11 @@ export default function Prompt({
     return (): void => {
       window.removeEventListener("focusin", onFocusChange);
       window.removeEventListener("focusout", onFocusChange);
+      window.removeEventListener("focus", onFocusChange);
+      window.removeEventListener("blur", onFocusChange);
       inp!.removeEventListener("selectionchange", onSelectionChange);
     };
-  }, []);
+  }, [disabled]);
 
   function handleKeyDown(e: KeyboardEvent<HTMLInputElement>): void {
     switch (e.key) {
@@ -118,16 +125,28 @@ export default function Prompt({
             <code className={`text-wrap whitespace-break-spaces`}>
               {command.slice(caretPosition.end)}
             </code>
+            {caretPosition.start === command.length && (
+              <code
+                className={`${
+                  isFocused
+                    ? "bg-primary-300"
+                    : "ring ring-primary-300 text-white"
+                }`}>
+                {" "}
+              </code>
+            )}
           </>
         )}
       </pre>
       <input
+        disabled={disabled}
         ref={inpRef}
         type="text"
         value={command}
         autoComplete={`off`}
         autoCapitalize={`off`}
         autoCorrect={`off`}
+        spellCheck={`false`}
         onChange={(e: ChangeEvent<HTMLInputElement>): void => {
           setCommand(e.target.value);
         }}

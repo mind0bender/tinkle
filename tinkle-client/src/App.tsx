@@ -1,8 +1,13 @@
-import { useCallback, useEffect, useState } from "react";
+import {
+  MutableRefObject,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import Output, { OutputProps } from "./components/Output";
 import { Color } from "./helper/color";
 import Prompt from "./components/Prompt";
-// import axios, { AxiosResponse } from "axios";
 import socket from "./socket";
 
 enum OutputType {
@@ -19,40 +24,39 @@ interface OutputInterface {
   time?: number;
 }
 
-// interface CommandResponse {
-//   hash: string;
-// }
-
 function App(): JSX.Element {
   const [command, setCommand] = useState<string>("");
 
   const [outputs, setOutputs] = useState<OutputInterface[]>([]);
+  const [isStreaming, setIsStreaming] = useState<boolean>(true);
+  const scrollAnchor: MutableRefObject<HTMLDivElement | null> = useRef(null);
 
   const handleCommand: () => void = useCallback((): void => {
+    if (!command) return;
     socket.emit("exec", command);
-
-    // axios
-    //   .post(SERVER_URL, {
-    //     input: command,
-    //   })
-    //   .then(({ data: { hash } }: AxiosResponse<CommandResponse>): void => {
-    //     setOutputs((prev: OutputInterface[]): OutputInterface[] => [
-    //       ...prev,
-    //       {
-    //         text: `message saved\nhash ${hash}`,
-    //         timestamp: new Date(),
-    //         type: OutputType.normal,
-    //       },
-    //     ]);
-    //     setCommand("");
-    //   })
-    //   .catch(console.error);
+    setIsStreaming(true);
   }, [command]);
 
   useEffect((): (() => void) => {
+    scrollAnchor.current?.scrollIntoView({ behavior: "smooth" });
+    return (): void => {};
+  }, [outputs]);
+
+  useEffect((): (() => void) => {
+    socket.on("confirmation", (): void => {
+      /* confirmation that server received the command and is processing it
+         can safely clear the command */
+      setCommand("");
+    });
+    socket.on("done", (): void => {
+      console.log("done");
+      setIsStreaming(false);
+    });
     socket.on(
       "out",
-      (data: Pick<OutputInterface, "timestamp" | "text">): void => {
+      (
+        data: Pick<OutputInterface, "timestamp" | "text"> & { done: boolean }
+      ): void => {
         console.log(data);
         setOutputs((prev: OutputInterface[]): OutputInterface[] => [
           ...prev,
@@ -66,7 +70,9 @@ function App(): JSX.Element {
     );
     socket.on(
       "info",
-      (data: Pick<OutputInterface, "timestamp" | "text">): void => {
+      (
+        data: Pick<OutputInterface, "timestamp" | "text"> & { done: boolean }
+      ): void => {
         console.log(data);
         setOutputs((prev: OutputInterface[]): OutputInterface[] => [
           ...prev,
@@ -80,7 +86,10 @@ function App(): JSX.Element {
     );
     socket.on(
       "err",
-      (data: Pick<OutputInterface, "timestamp" | "text">): void => {
+      (
+        data: Pick<OutputInterface, "timestamp" | "text"> & { done: boolean }
+      ): void => {
+        console.log(data);
         setOutputs((prev: OutputInterface[]): OutputInterface[] => [
           ...prev,
           {
@@ -95,6 +104,9 @@ function App(): JSX.Element {
       socket.off("out");
       socket.off("info");
       socket.off("err");
+
+      socket.off("confirmation");
+      socket.off("done");
     };
   });
 
@@ -131,15 +143,18 @@ function App(): JSX.Element {
                     theme:
                       output.type === OutputType.error
                         ? Color.danger
-                        : Color.info,
+                        : output.type === OutputType.info
+                        ? Color.info
+                        : Color.light,
                     timestamp: output.timestamp,
                   };
                 }),
               ]}
             />
-            {/* <Output nextOutputs={} /> */}
+            <div ref={scrollAnchor} />
           </div>
           <Prompt
+            disabled={isStreaming}
             command={command}
             setCommand={setCommand}
             handlenCommand={handleCommand}

@@ -25,7 +25,7 @@ export default function Output({
   waitBefore = 0,
   waitAfterRounds = 0,
   speedInv = (text?.length || 0) * 50,
-  timestamp = new Date(),
+  timestamp,
   showTimestamp = true,
   ...rest
 }: OutputProps): JSX.Element {
@@ -38,7 +38,7 @@ export default function Output({
   );
 
   const [loadingIdx, setLoadingIdx] = useState<number>(0);
-  const timeRef: MutableRefObject<Date> = useRef(timestamp);
+  const timeRef: MutableRefObject<Date | undefined> = useRef(timestamp);
   useEffect((): (() => void) => {
     if (text && textIdx === text.length) {
       const id: number = setInterval((): void => {
@@ -81,7 +81,7 @@ export default function Output({
     <pre {...rest} className={`text-wrap flex flex-col grow`}>
       {text && (
         <code
-          className={`flex grow justify-between items-center gap-2 py-1 px-4 ${
+          className={`flex grow justify-between items-baseline gap-2 py-1 px-4 ${
             showTimestamp && isReadyForNextOutputs && "border-l-4"
           } ${getThemeClassName(theme, true)}`}>
           <div>
@@ -93,7 +93,7 @@ export default function Output({
           </div>
           {showTimestamp && (
             <span className={`text-xs text-stone-400`}>
-              {timeRef.current.toLocaleTimeString()}
+              {timeRef.current?.toLocaleTimeString()}
             </span>
           )}
         </code>
