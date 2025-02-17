@@ -15,7 +15,7 @@ export interface OutputProps extends HTMLAttributes<HTMLPreElement> {
   waitAfterRounds?: number;
   speedInv?: number;
   timestamp?: Date;
-  isOutput?: boolean;
+  showTimestamp?: boolean;
 }
 
 export default function Output({
@@ -26,7 +26,7 @@ export default function Output({
   waitAfterRounds = 0,
   speedInv = (text?.length || 0) * 50,
   timestamp = new Date(),
-  isOutput = true,
+  showTimestamp = true,
   ...rest
 }: OutputProps): JSX.Element {
   const waitAfter: number = waitAfterRounds * 400 * 4;
@@ -82,7 +82,7 @@ export default function Output({
       {text && (
         <code
           className={`flex grow justify-between items-center gap-2 py-1 px-4 ${
-            isOutput && isReadyForNextOutputs && "border-t border-l-4"
+            showTimestamp && isReadyForNextOutputs && "border-l-4"
           } ${getThemeClassName(theme, true)}`}>
           <div>
             {text.slice(0, textIdx)}
@@ -91,7 +91,7 @@ export default function Output({
               ? "...".slice(0, isReadyForNextOutputs ? 3 : loadingIdx)
               : null}
           </div>
-          {isOutput && (
+          {showTimestamp && (
             <span className={`text-xs text-stone-400`}>
               {timeRef.current.toLocaleTimeString()}
             </span>

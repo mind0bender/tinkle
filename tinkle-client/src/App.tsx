@@ -1,8 +1,9 @@
-import { useCallback, useState } from "react";
-import Output from "./components/Output";
+import { useCallback, useEffect, useState } from "react";
+import Output, { OutputProps } from "./components/Output";
 import { Color } from "./helper/color";
 import Prompt from "./components/Prompt";
-import axios, { AxiosResponse } from "axios";
+// import axios, { AxiosResponse } from "axios";
+import socket from "./socket";
 
 enum OutputType {
   normal,
@@ -12,41 +13,90 @@ enum OutputType {
 
 interface OutputInterface {
   type: OutputType;
-  timestamp: Date;
+  timestamp?: Date;
 
   text?: string | undefined;
   time?: number;
 }
 
-interface CommandResponse {
-  hash: string;
-}
+// interface CommandResponse {
+//   hash: string;
+// }
 
 function App(): JSX.Element {
-  const SERVER_URL: string = import.meta.env.VITE_SERVER_URL;
-
   const [command, setCommand] = useState<string>("");
 
   const [outputs, setOutputs] = useState<OutputInterface[]>([]);
 
   const handleCommand: () => void = useCallback((): void => {
-    axios
-      .post(SERVER_URL, {
-        input: command,
-      })
-      .then(({ data: { hash } }: AxiosResponse<CommandResponse>): void => {
+    socket.emit("exec", command);
+
+    // axios
+    //   .post(SERVER_URL, {
+    //     input: command,
+    //   })
+    //   .then(({ data: { hash } }: AxiosResponse<CommandResponse>): void => {
+    //     setOutputs((prev: OutputInterface[]): OutputInterface[] => [
+    //       ...prev,
+    //       {
+    //         text: `message saved\nhash ${hash}`,
+    //         timestamp: new Date(),
+    //         type: OutputType.normal,
+    //       },
+    //     ]);
+    //     setCommand("");
+    //   })
+    //   .catch(console.error);
+  }, [command]);
+
+  useEffect((): (() => void) => {
+    socket.on(
+      "out",
+      (data: Pick<OutputInterface, "timestamp" | "text">): void => {
+        console.log(data);
         setOutputs((prev: OutputInterface[]): OutputInterface[] => [
           ...prev,
           {
-            text: `message saved\nhash ${hash}`,
-            timestamp: new Date(),
+            text: data.text,
+            timestamp: data.timestamp ? new Date(data.timestamp) : undefined,
             type: OutputType.normal,
           },
         ]);
-        setCommand("");
-      })
-      .catch(console.error);
-  }, [SERVER_URL, command]);
+      }
+    );
+    socket.on(
+      "info",
+      (data: Pick<OutputInterface, "timestamp" | "text">): void => {
+        console.log(data);
+        setOutputs((prev: OutputInterface[]): OutputInterface[] => [
+          ...prev,
+          {
+            text: data.text,
+            timestamp: data.timestamp ? new Date(data.timestamp) : undefined,
+            type: OutputType.info,
+          },
+        ]);
+      }
+    );
+    socket.on(
+      "err",
+      (data: Pick<OutputInterface, "timestamp" | "text">): void => {
+        setOutputs((prev: OutputInterface[]): OutputInterface[] => [
+          ...prev,
+          {
+            text: data.text,
+            timestamp: data.timestamp ? new Date(data.timestamp) : undefined,
+            type: OutputType.error,
+          },
+        ]);
+      }
+    );
+    return (): void => {
+      socket.off("out");
+      socket.off("info");
+      socket.off("err");
+    };
+  });
 
   return (
     <div
@@ -59,7 +109,7 @@ function App(): JSX.Element {
           className={`grow bg-transparent backdrop-blur-sm backdrop-opacity-10 border-b border-stone-800 px-4 py-2  h-12 flex items-center`}>
           <Output
             theme={Color.info}
-            isOutput={false}
+            showTimestamp={false}
             text={`mounting /mind0bender/tinkle.quack`}
           />
         </div>
@@ -71,25 +121,23 @@ function App(): JSX.Element {
         <div className={`py-5 px-10 bg-black border-r border-stone-800`} />
         <div
           className={`flex flex-col  justify-end grow px-4 mb-12 h-[calc(100vh-6rem)] overflow-y-auto`}>
-          <div className={`py-4 overflow-y-auto scrollbar`}>
+          <div
+            className={`py-4 overflow-y-auto scrollbar w-[calc(100hw-10rem)]`}>
             <Output
               nextOutputs={[
-                {
-                  text: "Insecure boot sequence initiated",
-                  theme: Color.danger,
-                  waitBefore: 3000,
-                  waitAfterRounds: 3,
-                },
-                {
-                  text: "Initializing modules",
-                  waitAfterRounds: Math.random() * 3 + 3,
-                },
-                {
-                  text: "Done.",
-                },
+                ...outputs.map((output: OutputInterface): OutputProps => {
+                  return {
+                    text: output.text,
+                    theme:
+                      output.type === OutputType.error
+                        ? Color.danger
+                        : Color.info,
+                    timestamp: output.timestamp,
+                  };
+                }),
               ]}
             />
-            <Output nextOutputs={outputs} />
+            {/* <Output nextOutputs={} /> */}
           </div>
           <Prompt
             command={command}
@@ -104,7 +152,7 @@ function App(): JSX.Element {
           <div
             className={`grow bg-transparent backdrop-blur-sm backdrop-opacity-10 border-t border-stone-800 px-4 py-2  h-12 flex items-center`}>
             <Output
-              isOutput={false}
+              showTimestamp={false}
               text="Type help for more info"
               waitBefore={1200}
             />

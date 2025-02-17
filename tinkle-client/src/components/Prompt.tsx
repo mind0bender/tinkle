@@ -77,7 +77,9 @@ export default function Prompt({
 
         {caretPosition.start === caretPosition.end ? (
           <>
-            <code className={``}>{command.slice(0, caretPosition.start)}</code>
+            <code className={`text-wrap whitespace-break-spaces`}>
+              {command.slice(0, caretPosition.start)}
+            </code>
             <code
               className={`${
                 isFocused
@@ -86,7 +88,9 @@ export default function Prompt({
               }`}>
               {command.slice(caretPosition.start, caretPosition.end + 1)}
             </code>
-            <code className={``}>{command.slice(caretPosition.end + 1)}</code>
+            <code className={`text-wrap whitespace-break-spaces`}>
+              {command.slice(caretPosition.end + 1)}
+            </code>
             {caretPosition.start === command.length && (
               <code
                 className={`${
@@ -100,7 +104,9 @@ export default function Prompt({
           </>
         ) : (
           <>
-            <code className={``}>{command.slice(0, caretPosition.start)}</code>
+            <code className={`text-wrap whitespace-break-spaces`}>
+              {command.slice(0, caretPosition.start)}
+            </code>
             <code
               className={`${
                 isFocused
@@ -109,7 +115,9 @@ export default function Prompt({
               }`}>
               {command.slice(caretPosition.start, caretPosition.end)}
             </code>
-            <code className={``}>{command.slice(caretPosition.end)}</code>
+            <code className={`text-wrap whitespace-break-spaces`}>
+              {command.slice(caretPosition.end)}
+            </code>
           </>
         )}
       </pre>
@@ -121,7 +129,6 @@ export default function Prompt({
         autoCapitalize={`off`}
         autoCorrect={`off`}
         onChange={(e: ChangeEvent<HTMLInputElement>): void => {
-          console.log("lol");
           setCommand(e.target.value);
         }}
         onKeyDown={handleKeyDown}
