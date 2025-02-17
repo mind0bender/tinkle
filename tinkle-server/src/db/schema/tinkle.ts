@@ -3,6 +3,8 @@ import { Document, Model, model, Schema } from "mongoose";
 export interface TinkleInterface extends Document {
   hash: string;
   text: string;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 const TinkleSchema = new Schema<TinkleInterface>(

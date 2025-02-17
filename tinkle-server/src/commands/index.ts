@@ -1,4 +1,7 @@
 import yargsParser, { Arguments } from "yargs-parser";
+import read from "./read";
+import write from "./write";
+import help from "./help";
 
 export enum OutputType {
   normal,
@@ -32,83 +35,72 @@ export default async function* execCommand(
       return arg;
     }
   );
+  let output: OutputGeneratorReturnType | null = null;
   switch (command) {
     case "help":
-      console.log("Help command");
-      yield {
-        text: "Help command",
-        type: OutputType.normal,
-        timestamp: new Date(),
-        done: false,
-      };
+      output = help();
       break;
     case "read":
-      console.log("Get command");
-      yield {
-        text: "Get command",
-        type: OutputType.normal,
-        timestamp: new Date(),
-        done: false,
-      };
+      output = read(args);
       break;
     case "write":
-      console.log("Post command");
-      yield {
-        text: "Post command",
-        type: OutputType.normal,
-        timestamp: new Date(),
-        done: false,
-      };
+      output = write(args);
       break;
     case "delete":
       console.log("Delete command");
-      yield {
+      return {
         text: "Delete command",
         type: OutputType.normal,
         timestamp: new Date(),
-        done: false,
+        done: true,
       };
-      break;
     case "list":
       console.log("List command");
-      yield {
+      return {
         text: "List command",
         type: OutputType.normal,
         timestamp: new Date(),
-        done: false,
+        done: true,
       };
-      break;
     case "clear":
       console.log("Clear command");
-      yield {
+      return {
         text: "Clear command",
         type: OutputType.normal,
         timestamp: new Date(),
-        done: false,
+        done: true,
       };
-      break;
     case "history":
       console.log("History command");
-      yield {
+      return {
         text: "History command",
         type: OutputType.normal,
         timestamp: new Date(),
-        done: false,
+        done: true,
       };
-      break;
     default:
       console.warn("Invalid command", { command, args });
-      yield {
+      return {
         text: "Invalid command",
         type: OutputType.error,
         timestamp: new Date(),
-        done: false,
+        done: true,
       };
-      break;
+  }
+  let iter: IteratorResult<OutputStream, OutputStream> = await output.next();
+  while (true) {
+    const outputStream: OutputStream = iter.value;
+    if (!outputStream) break;
+    if (!outputStream.done) {
+      yield outputStream;
+    } else {
+      return outputStream;
+    }
+    iter = await output.next();
   }
   return {
-    text: "",
-    type: OutputType.normal,
+    text: "wtf",
+    type: OutputType.error,
     timestamp: new Date(),
     done: true,
   };

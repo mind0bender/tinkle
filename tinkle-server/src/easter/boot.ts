@@ -1,18 +1,20 @@
 import { sleepAndReturn } from "../stream";
 import { OutputGeneratorReturnType, OutputType } from "../commands";
 
-export default async function* boot(): OutputGeneratorReturnType {
+export default async function* boot(
+  scale: number = 1
+): OutputGeneratorReturnType {
   yield await {
     text: "Insecure boot sequence initiated",
     type: OutputType.error,
     done: false,
   };
-  yield await sleepAndReturn(2000, {
+  yield await sleepAndReturn(2000 * scale, {
     text: "Loading configuration",
     type: OutputType.info,
     done: false,
   });
-  yield await sleepAndReturn(8000, {
+  yield await sleepAndReturn(8000 * scale, {
     text: "Initializing modules",
     type: OutputType.info,
     done: false,
@@ -22,7 +24,7 @@ export default async function* boot(): OutputGeneratorReturnType {
     type: OutputType.info,
     done: false,
   };
-  yield await sleepAndReturn(8000, {
+  yield await sleepAndReturn(8000 * scale, {
     text: "Starting services",
     type: OutputType.info,
     done: false,

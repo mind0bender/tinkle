@@ -15,6 +15,7 @@ export default async function streamOutput(
     await outputGenerator.next();
   while (true) {
     const output: OutputStream = outputIter.value;
+    if (!output) break;
     switch (output.type) {
       case OutputType.info:
         user.emit("info", output);
@@ -27,6 +28,7 @@ export default async function streamOutput(
         break;
     }
     if (output.done) {
+      user.emit("done");
       break;
     }
     outputIter = await outputGenerator.next();

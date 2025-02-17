@@ -34,7 +34,7 @@ app.use(helmet());
 
 io.on("connection", (user: Socket): void => {
   console.log(`+ user connected\t - ${user.id}}`);
-  streamOutput(boot, user, "");
+  streamOutput(() => boot(0.1), user, "");
   user.on("exec", (input: string): void => {
     const parsedInput: SafeParseReturnType<InputInterface, InputInterface> =
       inputSchema.safeParse({
@@ -42,6 +42,7 @@ io.on("connection", (user: Socket): void => {
       });
     if (parsedInput.success) {
       const validatedInput: string = parsedInput.data.input;
+      user.emit("confirmation");
       streamOutput(execInput, user, validatedInput);
     } else {
       parsedInput.error.errors.forEach((error: ZodIssue): void => {
